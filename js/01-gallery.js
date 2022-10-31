@@ -4,10 +4,20 @@ import { galleryItems } from "./gallery-items.js";
 console.log(galleryItems);
 
 const galleryRef = document.querySelector(".gallery");
+
 let markup = galleryItems
   .map(
-    ({ preview, description }) =>
-      `<div class="gallery__item"><img src="${preview}" alt="${description}" class="gallery__image"></div>`
+    ({ preview, original, description }) =>
+      `<div class="gallery__item">
+  <a class="gallery__link" href="${original}">
+    <img
+      class="gallery__image"
+      src="${preview}"
+      data-source="${original}"
+      alt="${description}"
+    />
+  </a>
+</div>`
   )
   .join("");
 
@@ -15,18 +25,29 @@ galleryRef.innerHTML = markup;
 
 galleryRef.addEventListener("click", onClick);
 
+let modalContent;
+
 function onClick(e) {
+  e.preventDefault();
   if (e.target.nodeName !== "IMG") {
     return;
   }
 
-  const currentItem = galleryItems.find(
-    ({ description }) => description === e.target.alt
+  modalContent = basicLightbox.create(
+    `<img src="${e.target.dataset.source}" alt="${e.target.alt}">`,
+    {
+      onShow: () => document.addEventListener("keydown", onKey),
+      onClose: () => document.removeEventListener("keydown", onKey),
+    }
   );
 
-  basicLightbox
-    .create(
-      `<img src="${currentItem.original}" alt="${currentItem.description}">`
-    )
-    .show();
+  modalContent.show();
+}
+
+function onKey(e) {
+  if (e.code !== "Escape") {
+    return;
+  }
+  modalContent.close();
+  console.log("escape"); // щоб переконатися що случах знятий
 }
